@@ -10,7 +10,7 @@ questions = df['질문']
 references = df['정답']
 answers = df['답변']
 
-openai.api_key = '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'
+openai.api_key = ''
 
 
 
