@@ -1,7 +1,7 @@
 # DPT_Chatbot_Final_Test
 
-##프로젝트 개요
-**DPT Chatbot** – 디지털경영전공 학부생을 위한 맞춤형 정보 제공 챗봇
+## 프로젝트 개요
+**DPT Chatbot** – 디지털경영전공 학부생을 위한 맞춤형 정보 제공 챗봇 테스트
 
 ### 주요 기능
 - **RAG(Retrieval-Augmented Generation) 기반 검색**
@@ -11,7 +11,6 @@
   - 각각 LLM의 Test : llm_evaluate.ipynb
   - 다양한 chunk size, top-k 설정에 따른 RAG 성능 실험 : chunk_size_experiment
   - LLM 응답의 표현력, 정확성, 적합성 평가 : evaluate_적합성,정확성,표현력
-  - 
 
 ---
 
