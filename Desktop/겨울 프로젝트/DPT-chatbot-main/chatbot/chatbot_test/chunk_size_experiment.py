@@ -80,7 +80,7 @@ class RAGExperiment:
         # 해당 chunk_size의 인덱스로 교체
         embeddings = OpenAIEmbeddings(
             model="text-embedding-3-small",
-            openai_api_key='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'
+            openai_api_key=''
         )
         vector_store = FAISS.load_local(
             f"faiss_index_chunk_{chunk_size}", 
@@ -94,7 +94,7 @@ class RAGExperiment:
         
         # LLM-as-a-Judge를 위한 OpenAI 클라이언트
         from openai import OpenAI
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key='')
         
         total_score = 0
         valid_questions = 0
