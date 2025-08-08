@@ -3,6 +3,9 @@
 ## 프로젝트 개요
 **DPT Chatbot** – 디지털경영전공 학부생을 위한 맞춤형 정보 제공 챗봇 테스트
 
+## 폴더 위치
+Chatbot -> chatbot_test
+
 ### 주요 기능
 - **RAG(Retrieval-Augmented Generation) 기반 검색**
   - 전공 관련 PDF 문서에서 학사일정, 졸업요건, 교환학생 정보 등을 검색
