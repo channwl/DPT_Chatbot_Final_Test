@@ -82,8 +82,7 @@ class MemoryExperiment:
     def evaluate_answer_accuracy(self, question_data: Dict, answer: str) -> float:
         """LLM-as-a-Judge로 답변 정확도 평가"""
         from openai import OpenAI
-        client = OpenAI(api_key='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')
-        
+        client = OpenAI(api_key='')
         judge_prompt = f"""
 당신은 AI 모델의 응답을 검토하고 정확성을 평가하는 전문가입니다.
 당신의 목표는 기준 정답과 비교하여 AI 응답이 사실을 얼마나 정확히 반영했는지를 판단하는 것입니다.
