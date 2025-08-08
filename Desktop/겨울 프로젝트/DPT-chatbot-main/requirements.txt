@@ -1,0 +1,10 @@
+django
+langchain
+langchain-community
+langchain-core
+langchain-openai
+langchain-google-genai
+faiss-cpu
+openai
+pymupdf
+python-dotenv

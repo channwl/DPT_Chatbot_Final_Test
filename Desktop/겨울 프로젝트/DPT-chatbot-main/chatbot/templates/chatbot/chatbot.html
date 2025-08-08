@@ -1,0 +1,393 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>디지털경영전공 챗봇</title>
+    <link rel="stylesheet" href="{% static 'chatbot/style.css' %}">
+    <style>
+    .header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 로고 가운데 정렬 */
+    padding: 20px;
+    border-bottom: 2px solid #800000;
+    }
+
+    .header-logo {
+    width: 170px; /* 로고 크기 조정 */
+    height: auto;
+    }
+
+    .intro-box {
+        display: flex;
+        gap: 20px;
+        margin: 30px 0;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .intro-logo {
+        width: 120px; /* Diget 로고 크게 */
+        height: 120px;
+        object-fit: contain;
+        margin-right: 20px;
+    }
+
+    .intro-text {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    .category-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    .category-card {
+        background-color: #f3f3f3;
+        border-radius: 12px;
+        padding: 20px;
+        width: 220px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .category-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+
+    .category-content button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background-color: #800000;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .category-content button:hover {
+        background-color: #a52a2a;
+    }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header>
+            <div class="header-flex">
+                <img src="{% static 'chatbot/korea_university_logo.png' %}" alt="고려대학교 세종캠퍼스 로고" class="header-logo">
+            </div>
+        </header>
+
+        <!-- 인트로 영역 -->
+        <div class="intro-box">
+          <img src="{% static 'chatbot/diget_logo2.png' %}" alt="Diget.ai 아이콘" class="intro-logo">
+          <div class="intro-text">
+            <p>안녕하세요 😊 Diget.ai 챗봇입니다!</p>
+            <p>디지털경영전공 학부생을 위한 맞춤형 정보 도우미입니다.</p>
+            <p>학사일정, 장학금, 비교과 활동 등 필요한 정보를 찾고 싶다면<br>
+            자유롭게 검색해주세요! 👇</p>
+          </div>
+        </div>
+
+        <!-- 카테고리 박스 -->
+<div class="category-box">
+    <div class="category-card">
+        <div class="category-title">📅 학사일정</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('학사일정')">학사일정 확인</button>
+        </div>
+    </div>
+    <div class="category-card">
+        <div class="category-title">🧾 학적</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('학적')">학적 관련 정보</button>
+        </div>
+    </div>
+    <div class="category-card">
+        <div class="category-title">💰 장학</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('장학')">장학 안내</button>
+        </div>
+    </div>
+    <div class="category-card">
+        <div class="category-title">🎯 비교과</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('비교과')">비교과 프로그램</button>
+        </div>
+    </div>
+    <div class="category-card">
+        <div class="category-title">🏢 조직도</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('조직도')">조직도 보기</button>
+        </div>
+    </div>
+    <div class="category-card">
+        <div class="category-title">🎓 진로</div>
+        <div class="category-content">
+            <button onclick="addBotMessage('진로')">진로 탐색</button>
+        </div>
+    </div>
+</div>
+
+
+        <!-- 채팅 히스토리 -->
+        <div id="chat-history"></div>
+
+        <!-- 질문 입력 폼 -->
+        <form id="chat-form" method="post">
+            {% csrf_token %}
+            <textarea name="question" placeholder="궁금한 점을 입력하세요..." required></textarea>
+            <button type="submit">보내기 ➤</button>
+        </form>
+    </div>
+
+    <script>
+        const staticTigerIcon = "{% static 'chatbot/diget_logo_small.png' %}";
+        
+        function formatBotResponse(text) {
+    let formatted = text
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\\n/g, '\n');
+    const lines = formatted.split('\n');
+    let result = "";
+    let insideList = false;
+
+    for (let line of lines) {
+        const trimmed = line.trim();
+        if (trimmed === "") continue;
+
+        if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+            if (!insideList) {
+                result += "<ul>";
+                insideList = true;
+            }
+            result += `<li>${trimmed.slice(2).trim()}</li>`;
+        } else {
+            if (insideList) {
+                result += "</ul>";
+                insideList = false;
+            }
+            result += `<p>${trimmed}</p>`;
+        }
+    }
+
+    if (insideList) result += "</ul>";
+    return result;
+}
+
+function addBotMessage(category) {
+    const chatHistory = document.getElementById('chat-history');
+    const botMessage = document.createElement('div');
+    botMessage.classList.add('message', 'bot');
+
+    let content = "";
+
+    switch (category) {
+        case "학사일정":
+            content = `
+<h3>📅 학사일정 안내</h3>
+<p><strong>다가오는 주요 일정</strong></p>
+<ul style="margin-top: 4px; margin-bottom: 8px;">
+  <li>📝 <strong>5/14~16</strong>: 이중전공 신청</li>
+  <li>📘 <strong>5/26</strong>: 1학기 3/4 시점 (12주차)</li>
+  <li>📝 <strong>6/17~23</strong>: 기말고사</li>
+  <li>🎉 <strong>6/23</strong>: 1학기 종강</li>
+</ul>
+<p><strong>🎉 주요 행사</strong></p>
+<ul>
+  <li>대동제: 5월 (또는 10월)</li>
+  <li>고연전: 9월 26~27일</li>
+  <li>개강총회: 3월 초</li>
+  <li>인터내셔널데이 (글비대 축제)</li>
+</ul>
+<p><strong>📚 수강 관련 일정</strong></p>
+<ul>
+  <li>수강 정정: 3/5~3/7, 9/3~9/5</li>
+  <li>수강 포기: 3/25~3/27, 9/22~9/25</li>
+  <li>휴·복학 신청: 8/1~8/25</li>
+</ul>
+<p style="margin-top: 8px;">🔎 더 자세한 학사일정은 학사팀 공지사항 또는 학사일정 PDF에서 확인해주세요.</p>
+`;
+            break;
+
+        case "학적":
+            content = `
+<h3>🧾 학적 · 졸업요건 (예: 25학번)</h3>
+<ul>
+    <li><strong>이수학점</strong>: 총 130학점 이상</li>
+    <li><strong>전공 필수</strong>: 6과목 (디지털마케팅, 머신러닝 등)</li>
+    <li><strong>전공 선택</strong>: 9과목 (디지털경영 과목 중 자유 선택)</li>
+    <li><strong>기초 교양</strong>: 비즈니스프로그래밍 <u>필수</u> 포함 6학점</li>
+    <li><strong>핵심 교양</strong>:
+        <ul>
+            <li>① 세계의 문화 / 역사의 탐구 / 문학과 예술 / 윤리와 사상 / 사회의 이해 중 <strong>서로 다른 영역 2과목 (6학점)</strong></li>
+            <li>② 과학과 기술 / 정량적 사고 중 <strong>1과목 (3학점)</strong></li>
+        </ul>
+    </li>
+    <li><strong>Global English</strong>: 1~4 각 1학점씩 필수</li>
+    <li><strong>졸업 영어</strong>: 공인성적 제출 (TOEIC 650 / TOEFL 68 등)</li>
+    <li><strong>제2전공</strong>: 심화 / 이중 / 융합 / 학생설계 중 택1 <u>(필수)</u></li>
+</ul>
+<p>📌 <strong>고려대 Portal</strong>에서 <strong>학적 변동</strong> (휴학·복학·전과 등)도 확인 및 신청 가능합니다.</p>
+<p>📌 <strong>졸업 요건</strong>은 매년 변경될 수 있으니, <strong>학과 홈페이지</strong>를 통해 확인해주세요.</p>
+`;
+            break;
+
+        case "장학":
+            content = `
+<h3>💰 장학금 안내</h3>
+<ul>
+    <li><strong>미래로 장학금 (4월, 10월 신청)</strong>
+        <ul>
+            <li><strong>장학금:</strong> 수업료의 전액 혹은 일부</li>
+            <li><strong>지급기간:</strong> 매학기</li>
+            <li><strong>선발기준:</strong> 세종장학총괄위원회에서 장학금액을 소득분위에 따라 차등 결정</li>
+            <li><strong>지급요건:</strong> 국가장학금 신청</li>
+            <li><strong>선발부서:</strong> 학생생활지원팀</li>
+        </ul>
+    </li>
+
+    <li><strong>성적우수장학금</strong>
+        <ul>
+            <li><strong>장학금:</strong> 성적최우수(수업료 전액), 성적우수B(수업료의 50%), 성적우수C(수업료의 25%)</li>
+            <li><strong>지급기간:</strong> 매학기</li>
+            <li><strong>선발기준:</strong> 학과별 성적 우수자</li>
+            <li><strong>선발부서:</strong> 각 학과에서 우수자 선발</li>
+        </ul>
+    </li>
+</ul>
+<p>📌 추가 정보는 질문해주세요!</p>
+`;
+            break;
+            
+        case "비교과":
+            content = `
+<h3>🎯 학과 비교과 안내</h3>
+<ul>
+    <li><strong>신청기간:</strong> 매 학기 학기말까지</li>
+    <li><strong>신청방법:</strong> eco005@korea.ac.kr 해당 메일로 서류 첨부하여 제출</li>
+    <li><strong>신청 서류:</strong> 아래 첨부파일을 참고하여 해당 프로그램에 맞는 제출서류 확인</li>
+    <li><strong>유의사항:</strong>
+        <ul>
+            <li>가. 프로그램장학금 총 수혜금액은 등록금을 초과할 수 없음</li>
+            <li>나. 프로그램장학금은 2024년 2학기 경영정보학과(제1전공) 재학생 / 디지털경영전공(제1전공) 재학생만 신청 가능<br>
+            <small>(장학금의 성격에 따라 1학년 융합경영학부 신입생 / 디지털경영전공 이중전공생에게도 지급 가능함 - 사전연락 필요)</small></li>
+        </ul>
+    </li>
+    <li><strong>문의사항:</strong> 044-860-1560 (디지털경영전공 사무실)</li>
+</ul>
+<p>📌 추가 학과 비교과, 교내 비교과에 대해선 질문해주세요!</p>
+`;
+break;
+
+        case "조직도":
+            content = `
+<h3>🏢 소모임 조직도</h3>
+<ul>
+    <li><strong>MITP</strong>
+        <p><strong>MITP</strong>는 "Make IT Possible"의 약자로, 우리가 이루고 싶은 꿈 "IT"을 찾고 실현하자는 의미를 지닙니다. 인생 목표를 확립하고 자신만의 사명을 세우기 위해 노력하는 학생들의 모임입니다.</p>
+    </li>
+    <li><strong>FCKU</strong>
+        <p><strong>FCKU</strong>는 풋살이나 축구를 좋아하는 학우들이 모여 정기적으로 운동하고 땀 흘리며 선후배간 친목까지 도모하는, 디지털경영전공 내에서 아주 활발하게 운영되고 있는 소모임입니다.</p>
+    </li>
+</ul>
+<p>📌 추가 설명 및 학생회 조직도를 알고 싶으면 질문해주세요!</p>
+`;
+break;
+
+        case "진로":
+            content = `
+<h3>🎓 디지털경영전공 진출 분야</h3>
+<ul>
+    <li><strong>데이터 분석가</strong>: 기업 데이터 기반 의사결정 지원</li>
+    <li><strong>머신러닝 엔지니어</strong>: 모델 설계 및 분석 시스템 개발</li>
+    <li><strong>IT 서비스 기획자</strong>: 사용자 중심 디지털 서비스 기획</li>
+    <li><strong>디지털 마케터</strong>: SNS, 웹 기반 마케팅 전략 수립</li>
+    <li><strong>스타트업 창업가</strong>: 비즈니스모델 기획 및 실현</li>
+</ul>
+<p>📌 관련 과목이 궁금하다면 질문해주세요 !</p>
+`;
+            break;
+
+        default:
+            content = `🤖 ${category}에 대한 안내는 준비 중입니다.`;
+    }
+
+    botMessage.innerHTML = `<img src="${staticTigerIcon}" class="bot-icon"> ${content}`;
+    chatHistory.appendChild(botMessage);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('chat-form');
+            const chatHistory = document.getElementById('chat-history');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const textarea = form.querySelector('textarea');
+                const userInput = textarea.value.trim();
+
+                if (userInput) {
+                    const userMessage = document.createElement('div');
+                    userMessage.classList.add('message', 'user');
+                    userMessage.innerText = '👨‍🎓 ' + userInput;
+                    chatHistory.appendChild(userMessage);
+
+                    const loadingMessage = document.createElement('div');
+                    loadingMessage.classList.add('message', 'bot', 'loading');
+                    loadingMessage.innerHTML = `<img src="${staticTigerIcon}" class="loading-icon"> 답변을 준비하고 있어요...`;
+                    chatHistory.appendChild(loadingMessage);
+
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                    fetch("{% url 'chatbot:chatbot_ask' %}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: "question=" + encodeURIComponent(userInput)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        loadingMessage.remove();
+                        const botMessage = document.createElement('div');
+                        botMessage.classList.add('message', 'bot');
+
+                        const formatted = formatBotResponse(data.response);
+                        botMessage.innerHTML = `<img src="${staticTigerIcon}" class="bot-icon">` + formatted;
+                        chatHistory.appendChild(botMessage);
+                        chatHistory.scrollTop = chatHistory.scrollHeight;
+                    })  
+                    .catch(error => {
+                        console.error('오류 발생:', error);
+                        loadingMessage.remove();
+                        const errorMessage = document.createElement('div');
+                        errorMessage.classList.add('message', 'bot');
+                        errorMessage.innerText = '⚠️ 오류가 발생했습니다. 다시 시도해주세요.';
+                        chatHistory.appendChild(errorMessage);
+                        chatHistory.scrollTop = chatHistory.scrollHeight;
+                    });
+
+                    textarea.value = '';
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
